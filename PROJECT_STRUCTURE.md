@@ -7,11 +7,6 @@ medical_suite_monorepo/
 │
 ├── .agents/                               # IDE context guardrails.
 │   ├── rules/                             # System prompts explicitly instructing the AI to use mock data and pure-Dart math for this phase.
-│   │   ├── 01_phase_scope_and_di.md           # Global boundaries, mock enforcement, and layer decoupling.
-│   │   ├── 02_canvas_matrix_and_state.md      # Matrix transformations, gestures, and drawing performance.
-│   │   ├── 03_design_system_and_widgets.md    # Adherence to design tokens and asset management rules.
-│   │   └── 04_export_and_threads.md           # Image rendering hooks, isolate limits, and iOS configurations.
-│   │
 │   └── workflows/                         # Shortcuts for generating dumb UI widgets and mock repository classes.
 │
 ├── ARCHITECTURE_SPEC.md                   # Core system design (includes notes on future C++ FFI/SQLite integration).
