@@ -1,61 +1,64 @@
 # Medical Suite Edge Application - iOS UI Prototype Phase
 
-This structure is aggressively optimized for an Antigravity IDE context window during a UI-only prototype phase. All C++, local database, and FFI layers have been stripped to maximize token efficiency. Native iOS directories have been exposed to handle bare-metal device deployment and permission entitlements.
+This structure utilizes **Feature-First Clean Architecture**. The application is sliced by business domain. Each feature is a strictly independent, crash-resilient module containing its own Data, Domain, and Presentation layers. If one feature crashes, it is caught by an isolated Error Boundary, ensuring the rest of the application continues to function flawlessly.
 
 ```text
 medical_suite_monorepo/
 │
 ├── .agents/                               # IDE context guardrails.
-│   ├── rules/                             # System prompts explicitly instructing the AI to use mock data and pure-Dart math for this phase.
+│   ├── rules/                             # System prompts explicitly instructing the AI to use mock data and pure-Dart math.
 │   └── workflows/                         # Shortcuts for generating dumb UI widgets and mock repository classes.
 │
 ├── ARCHITECTURE_SPEC.md                   # Core system design (includes notes on future C++ FFI/SQLite integration).
 ├── SETUP_INSTRUCTIONS.md                  # iOS physical device deployment steps (Code Signing, Bundle IDs).
 │
 └── flutter_application/                   # The primary mobile application workspace.
-    ├── pubspec.yaml                       # Dart dependencies (e.g., flutter_riverpod, path_provider) and asset declarations.
+    ├── pubspec.yaml                       # Dart dependencies and asset declarations.
     │
     ├── ios/                               # CRITICAL: Native iOS host environment.
     │   ├── Runner.xcworkspace             # The Xcode project required for Apple Developer code-signing and physical device builds.
-    │   └── Runner/Info.plist              # Native permissions registry (Must contain NSPhotoLibraryAddUsageDescription for PNG exports).
+    │   └── Runner/Info.plist              # Native permissions registry (Must contain NSPhotoLibraryAddUsageDescription).
     │
     ├── assets/                            # Local static assets driving the mock UI.
     │   ├── images/                        # Raster files (.png/.jpeg) for backgrounds and draggable medical devices.
-    │   └── mock_data/                     # JSON files simulating database responses (device catalogs, anatomical zones).
+    │   └── mock_data/                     # JSON files simulating database responses.
     │
     └── lib/                               # The compiled Dart codebase.
-        ├── main.dart                      # App entry point; initializes dependency injection and sets up mock services.
+        ├── main.dart                      # App entry point; initializes global error catchers and dependency injection.
         │
-        ├── core/                          # App-wide UI infrastructure and simulated backends.
-        │   ├── mock_services/             # Interface implementations returning fake data or pure-Dart logic (replaces future SQL/FFI).
-        │   │   ├── mock_snap_engine.dart  # Pure Dart fallback simulating C++ coordinate snapping.
-        │   │   └── mock_database.dart     # Parses assets/mock_data/ to feed the UI.
-        │   ├── state_management/          # Global UI state providers bridging the mock services to the features.
-        │   └── theme_and_styling/         # Design system: Colors, typography, and canvas grid tokens.
+        ├── core/                          # Global infrastructure (Features depend on Core, Core depends on nothing).
+        │   ├── constants/                 # Global constants (e.g., `app_assets.dart` for all image paths).
+        │   ├── error_handling/            # Global crash reporters and `ErrorBoundary` widget wrappers.
+        │   ├── router/                    # App-wide routing definitions.
+        │   └── theme/                     # Design system: Colors, typography, and canvas grid tokens.
         │
-        ├── shared/                        # Reusable boundaries and primitive widgets.
-        │   ├── domain_models/             # Pure data classes (e.g., `DeviceBlueprint`, `CanvasNode`) independent of any UI or backend.
-        │   ├── ui_components/             # Dumb, stateless presentation widgets.
-        │   └── utils/                     # UI-level geometric math helpers (bounding box collisions, aspect ratio scaling).
+        ├── shared/                        # Universal, dumb UI primitives used across multiple features.
+        │   └── widgets/                   # e.g., PrimaryButton, LoadingSpinner, CustomToast.
         │
-        └── features/                      # Isolated UI business domains.
+        └── features/                      # 🚀 INDEPENDENT, ISOLATED BUSINESS DOMAINS
             │
             ├── annotation_tools/          # The sketch overlay system.
-            │   ├── presentation/          # CustomPainter classes, brush sliders, and clear-canvas triggers.
-            │   └── application/           # In-memory vector path recording and undo/redo stack logic.
+            │   ├── data/                  # Local storage logic for stroke history.
+            │   ├── domain/                # Stroke entities and undo/redo interfaces.
+            │   └── presentation/          # CustomPainters, isolated Riverpod providers, UI controls.
             │
             ├── canvas_editor/             # The interactive 2D diagram workspace.
-            │   ├── presentation/          # DragTarget zones, InteractiveViewer (pan/zoom), and positioned nodes.
-            │   └── application/           # Local state tracking for X/Y coordinates, scale, and active layers.
+            │   ├── data/                  # Implementations for mock coordinate snapping (`MockSnapEngine`).
+            │   ├── domain/                # Interfaces (`ISnapEngine`) and canvas coordinate entities.
+            │   └── presentation/          # DragTarget zones, InteractiveViewer, isolated state tracking.
             │
             ├── dashboard_and_upload/      # The prototype entry screen.
-            │   └── presentation/          # Hardcoded layout simulating the ingestion of a base anatomical image.
+            │   ├── data/                  # Image ingestion handlers.
+            │   ├── domain/                # Base image entities.
+            │   └── presentation/          # Home screen layout and upload triggers.
             │
             ├── device_catalog/            # The interactive inventory.
-            │   ├── presentation/          # Draggable device tiles and collapsible UI sidebars.
-            │   └── application/           # Reads from core/mock_services to populate the lists.
+            │   ├── data/                  # Parses `assets/mock_data/` to generate catalogs.
+            │   ├── domain/                # `DeviceBlueprint` entities and Repository interfaces.
+            │   └── presentation/          # Draggable device tiles and sidebar providers.
             │
             └── export_and_share/          # Pixel capture and extraction.
-                ├── presentation/          # Export trigger buttons and success/failure toast notifications.
-                └── application/           # Uses RepaintBoundary to capture the widget tree, converting it to Uint8List and saving to iOS Photos as .png file.
+                ├── data/                  # Byte conversion and native iOS file system APIs.
+                ├── domain/                # Export interfaces and failure/success entities.
+                └── presentation/          # Export trigger buttons and success/failure overlays.
 ```

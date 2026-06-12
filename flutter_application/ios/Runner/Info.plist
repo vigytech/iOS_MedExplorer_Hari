@@ -45,5 +45,7 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app saves exported medical diagrams to your Photo Library for sharing with patients and colleagues.</string>
 </dict>
 </plist>
