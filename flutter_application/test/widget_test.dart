@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ios_medexplorer_hari/main.dart';
 
 void main() {
-  testWidgets('App launches without errors', (WidgetTester tester) async {
+  testWidgets('App launches without errors - INTERNAL CORE TEAM', (WidgetTester tester) async {
     await tester.pumpWidget(
       const ProviderScope(
         child: MedExplorerApp(),
